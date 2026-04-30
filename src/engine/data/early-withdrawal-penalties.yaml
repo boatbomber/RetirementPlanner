@@ -1,0 +1,33 @@
+# Early-withdrawal additional taxes for retirement and tax-advantaged
+# accounts. Statutory rates, no inflation indexing.
+#
+# § 72(t): 10% additional tax on premature distributions from
+# qualified plans / IRAs before age 59½. The engine uses age 59 as
+# the cutoff since most of that calendar year is on or after the
+# user's 59½ birthday.
+#
+# § 72(t)(2)(A)(v) "Rule of 55": no § 72(t) tax on 401(k) / 403(b) /
+# employer-plan distributions if the participant separated from
+# service in or after the calendar year they turned 55. Does NOT
+# apply to IRAs.
+#
+# § 223(f)(4): 20% additional tax on HSA distributions not used for
+# qualified medical expenses, only before age 65. After 65,
+# non-medical distributions are taxable as ordinary income but
+# penalty-free.
+#
+# § 530(d)(4): 10% additional tax on the earnings portion of
+# non-qualified 529 distributions. Engine assumes any 529 balance
+# drawn in retirement is non-qualified.
+
+source_url: "https://www.law.cornell.edu/uscode/text/26/72"
+last_updated: "2026-04-29"
+
+early_withdrawal:
+  penalty_rate: 0.10
+  age_threshold: 59
+rule_of_55_age: 55
+hsa_nonmedical:
+  penalty_rate: 0.20
+  age_threshold: 65
+nq_529_penalty_rate: 0.10

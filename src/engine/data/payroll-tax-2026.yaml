@@ -1,0 +1,14 @@
+# 2026 FICA / payroll tax parameters from the SSA Cost-of-Living
+# Adjustment fact sheet.
+#
+# OASDI (Social Security) is 6.2% on wages up to the taxable wage
+# base. Medicare (HI) is 1.45% on all wages with no cap. Additional
+# Medicare Tax (0.9%) above MAGI thresholds is NOT modeled by the
+# engine.
+
+source_url: "https://www.ssa.gov/news/en/cola/factsheets/2026.html"
+last_updated: "2026-04-29"
+
+ss_wage_base: 184500
+oasdi_rate: 0.062
+medicare_rate: 0.0145

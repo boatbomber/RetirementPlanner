@@ -1,0 +1,27 @@
+# IRC § 86 Social Security taxability "provisional income" thresholds.
+# Statutory since the 1983/1993 amendments and NEVER indexed for
+# inflation. Tier 1 = up to 50% of benefits taxable. Tier 2 = up to
+# 85% taxable.
+#
+# MFS thresholds are $0 by default per § 86(c)(1)(C). Per
+# § 86(c)(2), MFS taxpayers who lived APART from their spouse all
+# year may use the single thresholds. The engine takes the
+# conservative $0 path because it does not model the lived-apart
+# distinction.
+
+source_url: "https://www.law.cornell.edu/uscode/text/26/86"
+last_updated: "2026-04-29"
+
+taxability_thresholds:
+  married_filing_jointly:
+    tier1: 32000
+    tier2: 44000
+  single:
+    tier1: 25000
+    tier2: 34000
+  married_filing_separately:
+    tier1: 0
+    tier2: 0
+  head_of_household:
+    tier1: 25000
+    tier2: 34000

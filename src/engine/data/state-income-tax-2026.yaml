@@ -1,0 +1,652 @@
+# Per-state 2026 income tax modeling for retirement-planning estimates.
+#
+# Each entry has bracketed Single and MFJ rates plus a standard
+# deduction. Personal exemptions are folded into the deduction as a
+# planner-grade approximation, since most states allow std deduction
+# and personal exemption additively for a non-itemizing retiree. Tax
+# credits (e.g. AZ $100, CA $153, DE $110, NE $176, OR $256) are
+# NOT modeled because their value depends on tax liability, not AGI.
+#
+# Filing-status fallbacks (planner-grade simplification, applied at
+# load time, not encoded here):
+#   head_of_household  -> single brackets and deduction
+#   married_filing_separately -> MFJ brackets and deduction divided by 2
+#
+# `ltcg_treatment` (optional, default behavior is `ordinary`):
+#   ordinary           -> LTCG taxed at ordinary brackets after deduction
+#   flat               -> LTCG taxed at a flat preferential rate; ordinary
+#                         brackets ignore LTCG (HI cap, MT top LTCG bracket)
+#   exclusion          -> a fraction of LTCG is excluded from state AGI;
+#                         the remainder is taxed at ordinary brackets
+#
+# Excluded states (no state income tax in 2026, or capital-gains-only):
+#   AK, FL, NH, NV, SD, TN, TX, WY (no state income tax)
+#   WA (LTCG-only excise above $278K; not modeled, planner returns 0)
+# A state code missing from `states` falls back to 0% state tax.
+#
+# Bracket and deduction values are NOT inflation-indexed year-over-year
+# in this engine. A handful of states (CA, MN, ME, NY, OR) do index in
+# real life, so for very long sims those states will tax slightly more
+# than reality (bracket creep). Acceptable for planner-grade output.
+
+source_url: "https://taxfoundation.org/data/all/state/state-income-tax-rates-2026/"
+last_updated: "2026-04-30"
+
+states:
+  AL: # Alabama
+    standard_deduction:
+      single: 4500 # 3000 std + 1500 personal exemption
+      mfj: 11500 # 8500 std + 3000 personal exemption
+    brackets:
+      single:
+        - { rate: 0.02, threshold: 0 }
+        - { rate: 0.04, threshold: 500 }
+        - { rate: 0.05, threshold: 3000 }
+      mfj:
+        - { rate: 0.02, threshold: 0 }
+        - { rate: 0.04, threshold: 1000 }
+        - { rate: 0.05, threshold: 6000 }
+  AR: # Arkansas
+    standard_deduction:
+      single: 2470
+      mfj: 4940
+    brackets:
+      single:
+        - { rate: 0.02, threshold: 0 }
+        - { rate: 0.039, threshold: 4600 }
+      mfj:
+        - { rate: 0.02, threshold: 0 }
+        - { rate: 0.039, threshold: 4600 }
+    ltcg_treatment:
+      kind: "exclusion"
+      fraction: 0.50 # 50% LTCG exclusion
+  AZ: # Arizona
+    standard_deduction:
+      single: 8350
+      mfj: 16700
+    brackets:
+      single:
+        - { rate: 0.025, threshold: 0 }
+      mfj:
+        - { rate: 0.025, threshold: 0 }
+  CA: # California
+    standard_deduction:
+      single: 5540
+      mfj: 11080
+    brackets:
+      single:
+        - { rate: 0.01, threshold: 0 }
+        - { rate: 0.02, threshold: 11079 }
+        - { rate: 0.04, threshold: 26264 }
+        - { rate: 0.06, threshold: 41452 }
+        - { rate: 0.08, threshold: 57542 }
+        - { rate: 0.093, threshold: 72724 }
+        - { rate: 0.103, threshold: 371479 }
+        - { rate: 0.113, threshold: 445771 }
+        - { rate: 0.123, threshold: 742953 }
+        - { rate: 0.133, threshold: 1000000 }
+      mfj:
+        - { rate: 0.01, threshold: 0 }
+        - { rate: 0.02, threshold: 22158 }
+        - { rate: 0.04, threshold: 52528 }
+        - { rate: 0.06, threshold: 82904 }
+        - { rate: 0.08, threshold: 115084 }
+        - { rate: 0.093, threshold: 145448 }
+        - { rate: 0.103, threshold: 742958 }
+        - { rate: 0.113, threshold: 891542 }
+        - { rate: 0.123, threshold: 1000000 }
+        - { rate: 0.133, threshold: 1485906 }
+  CO: # Colorado
+    standard_deduction:
+      single: 16100
+      mfj: 32200
+    brackets:
+      single:
+        - { rate: 0.044, threshold: 0 }
+      mfj:
+        - { rate: 0.044, threshold: 0 }
+  CT: # Connecticut
+    standard_deduction:
+      single: 15000 # personal exemption (no std deduction in CT)
+      mfj: 24000 # personal exemption (no std deduction in CT)
+    brackets:
+      single:
+        - { rate: 0.02, threshold: 0 }
+        - { rate: 0.045, threshold: 10000 }
+        - { rate: 0.055, threshold: 50000 }
+        - { rate: 0.06, threshold: 100000 }
+        - { rate: 0.065, threshold: 200000 }
+        - { rate: 0.069, threshold: 250000 }
+        - { rate: 0.0699, threshold: 500000 }
+      mfj:
+        - { rate: 0.02, threshold: 0 }
+        - { rate: 0.045, threshold: 20000 }
+        - { rate: 0.055, threshold: 100000 }
+        - { rate: 0.06, threshold: 200000 }
+        - { rate: 0.065, threshold: 400000 }
+        - { rate: 0.069, threshold: 500000 }
+        - { rate: 0.0699, threshold: 1000000 }
+  DC: # Washington DC
+    standard_deduction:
+      single: 16100
+      mfj: 32200
+    brackets:
+      single:
+        - { rate: 0.04, threshold: 0 }
+        - { rate: 0.06, threshold: 10000 }
+        - { rate: 0.065, threshold: 40000 }
+        - { rate: 0.085, threshold: 60000 }
+        - { rate: 0.0925, threshold: 250000 }
+        - { rate: 0.0975, threshold: 500000 }
+        - { rate: 0.1075, threshold: 1000000 }
+      mfj:
+        - { rate: 0.04, threshold: 0 }
+        - { rate: 0.06, threshold: 10000 }
+        - { rate: 0.065, threshold: 40000 }
+        - { rate: 0.085, threshold: 60000 }
+        - { rate: 0.0925, threshold: 250000 }
+        - { rate: 0.0975, threshold: 500000 }
+        - { rate: 0.1075, threshold: 1000000 }
+  DE: # Delaware
+    standard_deduction:
+      single: 3250
+      mfj: 6500
+    brackets:
+      single:
+        - { rate: 0.022, threshold: 2000 }
+        - { rate: 0.039, threshold: 5000 }
+        - { rate: 0.048, threshold: 10000 }
+        - { rate: 0.052, threshold: 20000 }
+        - { rate: 0.0555, threshold: 25000 }
+        - { rate: 0.066, threshold: 60000 }
+      mfj:
+        - { rate: 0.022, threshold: 2000 }
+        - { rate: 0.039, threshold: 5000 }
+        - { rate: 0.048, threshold: 10000 }
+        - { rate: 0.052, threshold: 20000 }
+        - { rate: 0.0555, threshold: 25000 }
+        - { rate: 0.066, threshold: 60000 }
+  GA: # Georgia
+    standard_deduction:
+      single: 12000
+      mfj: 24000
+    brackets:
+      single:
+        - { rate: 0.0519, threshold: 0 }
+      mfj:
+        - { rate: 0.0519, threshold: 0 }
+  HI: # Hawaii
+    standard_deduction:
+      single: 5544 # 4400 std + 1144 personal exemption
+      mfj: 11088 # 8800 std + 2288 personal exemption
+    brackets:
+      single:
+        - { rate: 0.014, threshold: 0 }
+        - { rate: 0.032, threshold: 9600 }
+        - { rate: 0.055, threshold: 14400 }
+        - { rate: 0.064, threshold: 19200 }
+        - { rate: 0.068, threshold: 24000 }
+        - { rate: 0.072, threshold: 36000 }
+        - { rate: 0.076, threshold: 48000 }
+        - { rate: 0.079, threshold: 125000 }
+        - { rate: 0.0825, threshold: 175000 }
+        - { rate: 0.09, threshold: 225000 }
+        - { rate: 0.10, threshold: 275000 }
+        - { rate: 0.11, threshold: 325000 }
+      mfj:
+        - { rate: 0.014, threshold: 0 }
+        - { rate: 0.032, threshold: 19200 }
+        - { rate: 0.055, threshold: 28800 }
+        - { rate: 0.064, threshold: 38400 }
+        - { rate: 0.068, threshold: 48000 }
+        - { rate: 0.072, threshold: 72000 }
+        - { rate: 0.076, threshold: 96000 }
+        - { rate: 0.079, threshold: 250000 }
+        - { rate: 0.0825, threshold: 350000 }
+        - { rate: 0.09, threshold: 450000 }
+        - { rate: 0.10, threshold: 550000 }
+        - { rate: 0.11, threshold: 650000 }
+    ltcg_treatment:
+      kind: "flat"
+      rate: 0.0725 # statutory cap (HRS § 235-51(f))
+  IA: # Iowa
+    standard_deduction:
+      single: 16100
+      mfj: 32200
+    brackets:
+      single:
+        - { rate: 0.038, threshold: 0 }
+      mfj:
+        - { rate: 0.038, threshold: 0 }
+  ID: # Idaho
+    standard_deduction:
+      single: 16100
+      mfj: 32200
+    brackets:
+      single:
+        - { rate: 0.053, threshold: 4811 } # income below 4811 is untaxed
+      mfj:
+        - { rate: 0.053, threshold: 9622 }
+  IL: # Illinois
+    standard_deduction:
+      single: 2925 # personal exemption (no std deduction in IL)
+      mfj: 5850 # personal exemption (no std deduction in IL)
+    brackets:
+      single:
+        - { rate: 0.0495, threshold: 0 }
+      mfj:
+        - { rate: 0.0495, threshold: 0 }
+  IN: # Indiana
+    standard_deduction:
+      single: 1000 # personal exemption (no std deduction in IN)
+      mfj: 2000 # personal exemption (no std deduction in IN)
+    brackets:
+      single:
+        - { rate: 0.0295, threshold: 0 }
+      mfj:
+        - { rate: 0.0295, threshold: 0 }
+  KS: # Kansas
+    standard_deduction:
+      single: 12765 # 3605 std + 9160 personal exemption
+      mfj: 26560 # 8240 std + 18320 personal exemption
+    brackets:
+      single:
+        - { rate: 0.052, threshold: 0 }
+        - { rate: 0.0558, threshold: 23000 }
+      mfj:
+        - { rate: 0.052, threshold: 0 }
+        - { rate: 0.0558, threshold: 46000 }
+  KY: # Kentucky
+    standard_deduction:
+      single: 3360
+      mfj: 3360 # KY std deduction is per-filer, not doubled for MFJ
+    brackets:
+      single:
+        - { rate: 0.035, threshold: 0 }
+      mfj:
+        - { rate: 0.035, threshold: 0 }
+  LA: # Louisiana
+    standard_deduction:
+      single: 12875
+      mfj: 25750
+    brackets:
+      single:
+        - { rate: 0.03, threshold: 0 }
+      mfj:
+        - { rate: 0.03, threshold: 0 }
+  MA: # Massachusetts
+    standard_deduction:
+      single: 4400 # personal exemption (no std deduction in MA)
+      mfj: 8800 # personal exemption (no std deduction in MA)
+    brackets:
+      single:
+        - { rate: 0.05, threshold: 0 }
+        - { rate: 0.09, threshold: 1083150 } # millionaire surtax
+      mfj:
+        - { rate: 0.05, threshold: 0 }
+        - { rate: 0.09, threshold: 1083150 }
+  MD: # Maryland
+    standard_deduction:
+      single: 6550 # 3350 std + 3200 personal exemption
+      mfj: 13100 # 6700 std + 6400 personal exemption
+    brackets:
+      single:
+        - { rate: 0.02, threshold: 0 }
+        - { rate: 0.03, threshold: 1000 }
+        - { rate: 0.04, threshold: 2000 }
+        - { rate: 0.0475, threshold: 3000 }
+        - { rate: 0.05, threshold: 100000 }
+        - { rate: 0.0525, threshold: 125000 }
+        - { rate: 0.055, threshold: 150000 }
+        - { rate: 0.0575, threshold: 250000 }
+        - { rate: 0.0625, threshold: 500000 }
+        - { rate: 0.065, threshold: 1000000 }
+      mfj:
+        - { rate: 0.02, threshold: 0 }
+        - { rate: 0.03, threshold: 1000 }
+        - { rate: 0.04, threshold: 2000 }
+        - { rate: 0.0475, threshold: 3000 }
+        - { rate: 0.05, threshold: 150000 }
+        - { rate: 0.0525, threshold: 175000 }
+        - { rate: 0.055, threshold: 225000 }
+        - { rate: 0.0575, threshold: 300000 }
+        - { rate: 0.0625, threshold: 600000 }
+        - { rate: 0.065, threshold: 1200000 }
+  ME: # Maine
+    standard_deduction:
+      single: 13650 # 8350 std + 5300 personal exemption
+      mfj: 27300 # 16700 std + 10600 personal exemption
+    brackets:
+      single:
+        - { rate: 0.058, threshold: 0 }
+        - { rate: 0.0675, threshold: 27399 }
+        - { rate: 0.0715, threshold: 64849 }
+      mfj:
+        - { rate: 0.058, threshold: 0 }
+        - { rate: 0.0675, threshold: 54849 }
+        - { rate: 0.0715, threshold: 129749 }
+  MI: # Michigan
+    standard_deduction:
+      single: 5900 # personal exemption (no std deduction in MI)
+      mfj: 11800 # personal exemption (no std deduction in MI)
+    brackets:
+      single:
+        - { rate: 0.0425, threshold: 0 }
+      mfj:
+        - { rate: 0.0425, threshold: 0 }
+  MN: # Minnesota
+    standard_deduction:
+      single: 15300
+      mfj: 30600
+    brackets:
+      single:
+        - { rate: 0.0535, threshold: 0 }
+        - { rate: 0.068, threshold: 33310 }
+        - { rate: 0.0785, threshold: 109430 }
+        - { rate: 0.0985, threshold: 203150 }
+      mfj:
+        - { rate: 0.0535, threshold: 0 }
+        - { rate: 0.068, threshold: 48700 }
+        - { rate: 0.0785, threshold: 193480 }
+        - { rate: 0.0985, threshold: 337930 }
+  MO: # Missouri
+    standard_deduction:
+      single: 16100
+      mfj: 32200
+    brackets:
+      single:
+        - { rate: 0.02, threshold: 1348 }
+        - { rate: 0.025, threshold: 2696 }
+        - { rate: 0.03, threshold: 4044 }
+        - { rate: 0.035, threshold: 5392 }
+        - { rate: 0.04, threshold: 6740 }
+        - { rate: 0.045, threshold: 8088 }
+        - { rate: 0.047, threshold: 9436 }
+      mfj:
+        - { rate: 0.02, threshold: 1348 }
+        - { rate: 0.025, threshold: 2696 }
+        - { rate: 0.03, threshold: 4044 }
+        - { rate: 0.035, threshold: 5392 }
+        - { rate: 0.04, threshold: 6740 }
+        - { rate: 0.045, threshold: 8088 }
+        - { rate: 0.047, threshold: 9436 }
+  MS: # Mississippi
+    standard_deduction:
+      single: 8300 # 2300 std + 6000 personal exemption
+      mfj: 16600 # 4600 std + 12000 personal exemption
+    brackets:
+      single:
+        - { rate: 0.04, threshold: 10000 } # first $10K is exempt
+      mfj:
+        - { rate: 0.04, threshold: 10000 }
+  MT: # Montana
+    standard_deduction:
+      single: 16100
+      mfj: 32200
+    brackets:
+      single:
+        - { rate: 0.047, threshold: 0 }
+        - { rate: 0.0565, threshold: 47500 }
+      mfj:
+        - { rate: 0.047, threshold: 0 }
+        - { rate: 0.0565, threshold: 95000 }
+    ltcg_treatment:
+      kind: "flat"
+      rate: 0.0410 # statutory top LTCG bracket (post-2024 reform), simplified
+  NC: # North Carolina
+    standard_deduction:
+      single: 12750
+      mfj: 25500
+    brackets:
+      single:
+        - { rate: 0.0399, threshold: 0 }
+      mfj:
+        - { rate: 0.0399, threshold: 0 }
+  ND: # North Dakota
+    standard_deduction:
+      single: 16100
+      mfj: 32200
+    brackets:
+      single:
+        - { rate: 0.0195, threshold: 48475 } # income below 48475 untaxed
+        - { rate: 0.025, threshold: 244825 }
+      mfj:
+        - { rate: 0.0195, threshold: 80975 }
+        - { rate: 0.025, threshold: 298075 }
+    ltcg_treatment:
+      kind: "exclusion"
+      fraction: 0.40 # 40% LTCG exclusion
+  NE: # Nebraska
+    standard_deduction:
+      single: 8850
+      mfj: 17700
+    brackets:
+      single:
+        - { rate: 0.0246, threshold: 0 }
+        - { rate: 0.0351, threshold: 4130 }
+        - { rate: 0.0455, threshold: 24760 }
+      mfj:
+        - { rate: 0.0246, threshold: 0 }
+        - { rate: 0.0351, threshold: 8250 }
+        - { rate: 0.0455, threshold: 49530 }
+  NJ: # New Jersey
+    standard_deduction:
+      single: 1000 # personal exemption (no std deduction in NJ)
+      mfj: 2000 # personal exemption (no std deduction in NJ)
+    brackets:
+      single:
+        - { rate: 0.014, threshold: 0 }
+        - { rate: 0.0175, threshold: 20000 }
+        - { rate: 0.035, threshold: 35000 }
+        - { rate: 0.0553, threshold: 40000 }
+        - { rate: 0.0637, threshold: 75000 }
+        - { rate: 0.0897, threshold: 500000 }
+        - { rate: 0.1075, threshold: 1000000 } # millionaire surtax
+      mfj:
+        - { rate: 0.014, threshold: 0 }
+        - { rate: 0.0175, threshold: 20000 }
+        - { rate: 0.0245, threshold: 50000 }
+        - { rate: 0.035, threshold: 70000 }
+        - { rate: 0.0553, threshold: 80000 }
+        - { rate: 0.0637, threshold: 150000 }
+        - { rate: 0.0897, threshold: 500000 }
+        - { rate: 0.1075, threshold: 1000000 }
+  NM: # New Mexico
+    standard_deduction:
+      single: 16100
+      mfj: 32200
+    brackets:
+      single:
+        - { rate: 0.015, threshold: 0 }
+        - { rate: 0.032, threshold: 5500 }
+        - { rate: 0.043, threshold: 16500 }
+        - { rate: 0.047, threshold: 33500 }
+        - { rate: 0.049, threshold: 66500 }
+        - { rate: 0.059, threshold: 210000 }
+      mfj:
+        - { rate: 0.015, threshold: 0 }
+        - { rate: 0.032, threshold: 8000 }
+        - { rate: 0.043, threshold: 25000 }
+        - { rate: 0.047, threshold: 50000 }
+        - { rate: 0.049, threshold: 100000 }
+        - { rate: 0.059, threshold: 315000 }
+    ltcg_treatment:
+      kind: "exclusion"
+      fraction: 0.40 # up to 40% deduction (capped, simplified)
+  NY: # New York
+    standard_deduction:
+      single: 8000
+      mfj: 16050
+    brackets:
+      single:
+        - { rate: 0.039, threshold: 0 }
+        - { rate: 0.044, threshold: 8500 }
+        - { rate: 0.0515, threshold: 11700 }
+        - { rate: 0.054, threshold: 13900 }
+        - { rate: 0.059, threshold: 80650 }
+        - { rate: 0.0685, threshold: 215400 }
+        - { rate: 0.0965, threshold: 1077550 }
+        - { rate: 0.103, threshold: 5000000 }
+        - { rate: 0.109, threshold: 25000000 }
+      mfj:
+        - { rate: 0.039, threshold: 0 }
+        - { rate: 0.044, threshold: 17150 }
+        - { rate: 0.0515, threshold: 23600 }
+        - { rate: 0.054, threshold: 27900 }
+        - { rate: 0.059, threshold: 161550 }
+        - { rate: 0.0685, threshold: 323200 }
+        - { rate: 0.0965, threshold: 2155350 }
+        - { rate: 0.103, threshold: 5000000 }
+        - { rate: 0.109, threshold: 25000000 }
+  OH: # Ohio
+    standard_deduction:
+      single: 2400 # personal exemption (no std deduction in OH)
+      mfj: 4800 # personal exemption (no std deduction in OH)
+    brackets:
+      single:
+        - { rate: 0.0275, threshold: 26050 } # first 26050 untaxed
+      mfj:
+        - { rate: 0.0275, threshold: 26050 }
+  OK: # Oklahoma
+    standard_deduction:
+      single: 7350 # 6350 std + 1000 personal exemption
+      mfj: 14700 # 12700 std + 2000 personal exemption
+    brackets:
+      single:
+        - { rate: 0.025, threshold: 3750 } # first 3750 untaxed
+        - { rate: 0.035, threshold: 4900 }
+        - { rate: 0.045, threshold: 7200 }
+      mfj:
+        - { rate: 0.025, threshold: 7500 }
+        - { rate: 0.035, threshold: 9800 }
+        - { rate: 0.045, threshold: 14400 }
+  OR: # Oregon
+    standard_deduction:
+      single: 2910
+      mfj: 5820
+    brackets:
+      single:
+        - { rate: 0.0475, threshold: 0 }
+        - { rate: 0.0675, threshold: 4550 }
+        - { rate: 0.0875, threshold: 11400 }
+        - { rate: 0.099, threshold: 125000 }
+      mfj:
+        - { rate: 0.0475, threshold: 0 }
+        - { rate: 0.0675, threshold: 9100 }
+        - { rate: 0.0875, threshold: 22800 }
+        - { rate: 0.099, threshold: 250000 }
+  PA: # Pennsylvania
+    standard_deduction:
+      single: 0 # PA has neither a std deduction nor personal exemption
+      mfj: 0
+    brackets:
+      single:
+        - { rate: 0.0307, threshold: 0 }
+      mfj:
+        - { rate: 0.0307, threshold: 0 }
+  RI: # Rhode Island
+    standard_deduction:
+      single: 16450 # 11200 std + 5250 personal exemption
+      mfj: 32900 # 22400 std + 10500 personal exemption
+    brackets:
+      single:
+        - { rate: 0.0375, threshold: 0 }
+        - { rate: 0.0475, threshold: 82050 }
+        - { rate: 0.0599, threshold: 186450 }
+      mfj:
+        - { rate: 0.0375, threshold: 0 }
+        - { rate: 0.0475, threshold: 82050 }
+        - { rate: 0.0599, threshold: 186450 }
+  SC: # South Carolina
+    standard_deduction:
+      single: 8350
+      mfj: 16700
+    brackets:
+      single:
+        - { rate: 0.0, threshold: 0 }
+        - { rate: 0.03, threshold: 3640 }
+        - { rate: 0.06, threshold: 18230 }
+      mfj:
+        - { rate: 0.0, threshold: 0 }
+        - { rate: 0.03, threshold: 3640 }
+        - { rate: 0.06, threshold: 18230 }
+    ltcg_treatment:
+      kind: "exclusion"
+      fraction: 0.44 # 44% LTCG exclusion
+  UT: # Utah
+    standard_deduction:
+      single: 0 # UT uses a credit, not a deduction (not modeled)
+      mfj: 0
+    brackets:
+      single:
+        - { rate: 0.045, threshold: 0 }
+      mfj:
+        - { rate: 0.045, threshold: 0 }
+  VA: # Virginia
+    standard_deduction:
+      single: 9680 # 8750 std + 930 personal exemption
+      mfj: 19360 # 17500 std + 1860 personal exemption
+    brackets:
+      single:
+        - { rate: 0.02, threshold: 0 }
+        - { rate: 0.03, threshold: 3000 }
+        - { rate: 0.05, threshold: 5000 }
+        - { rate: 0.0575, threshold: 17000 }
+      mfj:
+        - { rate: 0.02, threshold: 0 }
+        - { rate: 0.03, threshold: 3000 }
+        - { rate: 0.05, threshold: 5000 }
+        - { rate: 0.0575, threshold: 17000 }
+  VT: # Vermont
+    standard_deduction:
+      single: 12950 # 7650 std + 5300 personal exemption
+      mfj: 25900 # 15300 std + 10600 personal exemption
+    brackets:
+      single:
+        - { rate: 0.0335, threshold: 0 }
+        - { rate: 0.066, threshold: 49400 }
+        - { rate: 0.076, threshold: 119700 }
+        - { rate: 0.0875, threshold: 249700 }
+      mfj:
+        - { rate: 0.0335, threshold: 0 }
+        - { rate: 0.066, threshold: 82500 }
+        - { rate: 0.076, threshold: 199450 }
+        - { rate: 0.0875, threshold: 304000 }
+    ltcg_treatment:
+      kind: "exclusion"
+      fraction: 0.40 # 40% LTCG exclusion (capped at 350K, simplified)
+  WI: # Wisconsin
+    standard_deduction:
+      single: 14660 # 13960 std + 700 personal exemption
+      mfj: 27240 # 25840 std + 1400 personal exemption
+    brackets:
+      single:
+        - { rate: 0.035, threshold: 0 }
+        - { rate: 0.044, threshold: 15110 }
+        - { rate: 0.053, threshold: 51950 }
+        - { rate: 0.0765, threshold: 332720 }
+      mfj:
+        - { rate: 0.035, threshold: 0 }
+        - { rate: 0.044, threshold: 20150 }
+        - { rate: 0.053, threshold: 69260 }
+        - { rate: 0.0765, threshold: 443630 }
+    ltcg_treatment:
+      kind: "exclusion"
+      fraction: 0.30 # 30% LTCG exclusion
+  WV: # West Virginia
+    standard_deduction:
+      single: 2000 # personal exemption (no std deduction in WV)
+      mfj: 4000 # personal exemption (no std deduction in WV)
+    brackets:
+      single:
+        - { rate: 0.0222, threshold: 0 }
+        - { rate: 0.0296, threshold: 10000 }
+        - { rate: 0.0333, threshold: 25000 }
+        - { rate: 0.0444, threshold: 40000 }
+        - { rate: 0.0482, threshold: 60000 }
+      mfj:
+        - { rate: 0.0222, threshold: 0 }
+        - { rate: 0.0296, threshold: 10000 }
+        - { rate: 0.0333, threshold: 25000 }
+        - { rate: 0.0444, threshold: 40000 }
+        - { rate: 0.0482, threshold: 60000 }
