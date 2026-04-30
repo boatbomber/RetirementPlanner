@@ -1,0 +1,17 @@
+# Render blueprint config
+
+version: "1"
+services:
+- type: web
+  name: plan-your-retirement
+  runtime: static
+  repo: https://github.com/boatbomber/RetirementPlanner
+  autoDeployTrigger: commit
+  # Runs yarn to install deps & build into dist/, then publishes the contents of that directory
+  buildCommand: yarn; yarn build
+  staticPublishPath: dist
+  # Rewrites all requests to /index.html to use the React Router client-side routing.
+  routes:
+  - type: rewrite
+    source: /*
+    destination: /index.html
